@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>তামীরুল মিল্লাত কামিল মাদ্রাসা - ছাত্র তথ্য</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --primary: #047857; --secondary: #10b981; --bg: #f0fdf4; --white: #ffffff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Hind Siliguri', sans-serif; background: var(--bg); color: #1f2937; }
+
+        /* Banner Slider - Adjusted for 1000x230 ratio */
+        .slider-wrapper { width: 100%; display: flex; justify-content: center; background: #fff; border-bottom: 3px solid var(--primary); }
+        .slider { width: 100%; max-width: 1200px; height: 280px; position: relative; overflow: hidden; }
+        .slide { 
+            position: absolute; width: 100%; height: 100%; opacity: 0; 
+            transition: 0.8s ease-in-out; 
+            background-size: 100% 100%; /* ব্যানার পুরোটা জুড়ে দেখাবে */
+            background-repeat: no-repeat; 
+            background-position: center; 
+        }
+        .slide.active { opacity: 1; }
+
+        /* Search Section */
+        .search-container { max-width: 850px; margin: -30px auto 40px; position: relative; z-index: 20; padding: 30px; background: var(--white); border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border: 1px solid #e5e7eb; }
+        .search-wrapper { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        select, input { padding: 14px; border: 2px solid #d1d5db; border-radius: 10px; outline: none; font-size: 16px; font-family: 'Hind Siliguri'; flex: 1; }
+        input { flex: 2; }
+
+        .search-btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .search-btn:hover { background: var(--secondary); transform: translateY(-2px); }
+
+        /* Student Card */
+        .student-grid { max-width: 850px; margin: 0 auto 50px; padding: 0 20px; }
+        .student-card { background: var(--white); border-radius: 15px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-left: 8px solid var(--primary); animation: slideIn 0.5s ease; position: relative; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+        .info-label { font-weight: 700; color: #4b5563; }
+
+        /* Print Button */
+        .print-btn { margin-top: 20px; background: #3b82f6; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-family: 'Hind Siliguri'; font-weight: 600; font-size: 16px; }
+
+        /* Footer - Developer Image Fixed */
+        .dev-footer { background: #064e3b; color: #ecfdf5; padding: 50px 20px; text-align: center; }
+        .dev-card { display: flex; align-items: center; justify-content: center; gap: 25px; flex-wrap: wrap; }
+        .dev-img-container { width: 110px; height: 110px; overflow: hidden; border-radius: 50%; border: 4px solid var(--secondary); background: #fff; display: flex; align-items: center; justify-content: center; }
+        .dev-img { width: 100%; height: 100%; object-fit: contain; /* ছবি কাটবে না */ }
+        .dev-text { text-align: left; }
+
+        @media (max-width: 600px) { 
+            .slider { height: 140px; } 
+            .search-container { margin-top: -10px; }
+            .input-row { flex-direction: column; } 
+            .dev-text { text-align: center; } 
+        }
+
+        /* Print Style */
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-btn, .search-container, .slider-wrapper, .dev-footer { display: none !important; }
+            .student-card { border: 2px solid #000; padding: 40px; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slider-wrapper">
+        <div class="slider">
+            <div class="slide active" style="background-image: url('p1.png');"></div>
+            <div class="slide" style="background-image: url('p2.png');"></div>
+            <div class="slide" style="background-image: url('p3.png');"></div>
+            <div class="slide" style="background-image: url('p4.png');"></div>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <h2 style="color: var(--primary); font-size: 26px;">শিক্ষার্থী তথ্য অনুসন্ধান</h2>
+        <div class="search-wrapper">
+            <div class="input-row">
+                <select id="searchType">
+                    <option value="Roll">রোল নম্বর</option>
+                    <option value="ID">আইডি (ID)</option>
+                    <option value="Name">নাম</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="এখানে টাইপ করুন...">
+            </div>
+            <button class="search-btn" onclick="performSearch()">🔍 তথ্য অনুসন্ধান করুন</button>
+        </div>
+        <p id="error-msg" style="margin-top: 15px; color: #dc2626; display: none; font-weight: 600;"></p>
+    </div>
+
+    <div id="printArea" class="student-grid"></div>
+
+    <footer class="dev-footer">
+        <div class="dev-card">
+            <div class="dev-img-container">
+                <img src="p5.png" alt="Developer" class="dev-img">
+            </div>
+            <div class="dev-text">
+                <h3 style="color: var(--secondary);">মো: রায়হান উদ্দিন</h3>
+                <p>জিমেইল: hafijraihanahmed16@gmail.com</p>
+                <p>যোগাযোগ: 0184431096</p>
+                <p>তামীরুল মিল্লাত কামিল মাদ্রাসা</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const sheetID = '1beH5m41AHFyuPBmjqYotUi84z-x3Jxsq12LYivz6dv4';
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv`;
+        let students = [];
+
+        async function loadData() {
+            try {
+                const response = await fetch(csvUrl);
+                const data = await response.text();
+                students = parseCSV(data);
+            } catch (e) { console.error("Load failed"); }
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.split("\n");
+            const headers = lines[0].split(",").map(h => h.trim());
+            return lines.slice(1).map(line => {
+                const values = line.split(",");
+                let obj = {};
+                headers.forEach((header, i) => obj[header] = values[i] ? values[i].trim() : "");
+                return obj;
+            });
+        }
+
+        function performSearch() {
+            const type = document.getElementById('searchType').value;
+            const inputVal = document.getElementById('searchInput').value.trim().toLowerCase();
+            const printArea = document.getElementById('printArea');
+            const errorMsg = document.getElementById('error-msg');
+
+            if (!inputVal) {
+                errorMsg.innerText = "অনুগ্রহ করে তথ্য প্রদান করুন!";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            const found = students.find(s => s[type] && s[type].toLowerCase() === inputVal);
+
+            if (found) {
+                errorMsg.style.display = "none";
+                printArea.innerHTML = `
+                    <div class="student-card">
+                        <div style="text-align:center; border-bottom:2px solid #047857; margin-bottom:20px; padding-bottom:10px;">
+                            <h2 style="color:#047857;">তামীরুল মিল্লাত কামিল মাদ্রাসা</h2>
+                            <p>শিক্ষার্থীর ব্যক্তিগত তথ্য বিবরণী</p>
+                        </div>
+                        <div class="info-row"><span class="info-label">নাম:</span><span>${found.Name}</span></div>
+                        <div class="info-row"><span class="info-label">রোল নম্বর:</span><span>${found.Roll}</span></div>
+                        <div class="info-row"><span class="info-label">আইডি (ID):</span><span>${found.ID}</span></div>
+                        <div class="info-row"><span class="info-label">পিতার নাম:</span><span>${found['Father Name']}</span></div>
+                        <div class="info-row"><span class="info-label">সেকশন:</span><span>${found.Section}</span></div>
+                        
+                        <div style="text-align:center; margin-top:25px;">
+                            <button class="print-btn" onclick="window.print()">🖨️ প্রিন্ট / PDF সেভ করুন</button>
+                        </div>
+                    </div>
+                `;
+                triggerSuccess();
+            } else {
+                errorMsg.innerText = "দুঃখিত, কোনো তথ্য পাওয়া যায়নি!";
+                errorMsg.style.display = "block";
+                printArea.innerHTML = "";
+            }
+        }
+
+        function triggerSuccess() {
+            const speech = new SpeechSynthesisUtterance("আলহামদুলিল্লাহ, তথ্য খুঁজে পাওয়া গেছে");
+            speech.lang = 'bn-BD';
+            window.speechSynthesis.speak(speech);
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+
+        let current = 0;
+        const slides = document.querySelectorAll('.slide');
+        setInterval(() => {
+            slides[current].classList.remove('active');
+            current = (current + 1) % slides.length;
+            slides[current].classList.add('active');
+        }, 2500);
+
+        loadData();
+    </script>
+</body>
+</html>
